@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#667eea">
+    <title>메트로놈 - 버스킹이 멀지않았다</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+            background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 
+                0 20px 60px rgba(0,0,0,0.3),
+                0 0 0 1px rgba(255,255,255,0.5) inset;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .nav {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .nav a:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .bpm-display {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .bpm-number {
+            font-size: 80px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .bpm-label {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .tempo-name {
+            display: inline-block;
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 20px;
+            color: #333;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .bpm-control {
+            margin-bottom: 30px;
+        }
+
+        .bpm-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #4facfe 0%, #667eea 50%, #f093fb 100%);
+            outline: none;
+            -webkit-appearance: none;
+            margin-bottom: 20px;
+        }
+
+        .bpm-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .bpm-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border: none;
+        }
+
+        .bpm-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .bpm-btn {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .bpm-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+
+        .bpm-btn:active {
+            transform: translateY(0);
+        }
+
+        .visual-beat {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            min-height: 80px;
+        }
+
+        .beat-dot {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            transition: all 0.1s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .beat-dot.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transform: scale(1.2);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
+        }
+
+        .beat-dot.accent {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            transform: scale(1.3);
+            box-shadow: 0 8px 24px rgba(245, 101, 101, 0.5);
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .play-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            border-radius: 30px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 
+                0 4px 15px rgba(102, 126, 234, 0.4),
+                0 0 0 1px rgba(255,255,255,0.2) inset;
+            font-weight: 600;
+        }
+
+        .play-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 20px rgba(102, 126, 234, 0.6),
+                0 0 0 1px rgba(255,255,255,0.2) inset;
+        }
+
+        .play-btn:active {
+            transform: translateY(0);
+        }
+
+        .play-btn.playing {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+        }
+
+        .time-signature {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .time-signature-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .time-signature-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .time-btn {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #333;
+        }
+
+        .time-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .presets {
+            margin-bottom: 20px;
+        }
+
+        .presets-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .preset-btn {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #333;
+        }
+
+        .preset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        @media (max-width: 500px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            .bpm-number {
+                font-size: 60px;
+            }
+
+            .beat-dot {
+                width: 50px;
+                height: 50px;
+            }
+
+            .play-btn {
+                padding: 15px 40px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 메트로놈</h1>
+            <p>정확한 박자로 연습하세요!</p>
+        </div>
+
+        <div class="nav">
+            <a href="index.html">← 음정 체크</a>
+            <a href="rhythm-game.html">리듬 게임 →</a>
+        </div>
+
+        <div class="bpm-display">
+            <div class="bpm-number" id="bpmDisplay">120</div>
+            <div class="bpm-label">BPM (Beats Per Minute)</div>
+            <div class="tempo-name" id="tempoName">Moderato</div>
+        </div>
+
+        <div class="bpm-control">
+            <input type="range" min="40" max="240" value="120" class="bpm-slider" id="bpmSlider">
+        </div>
+
+        <div class="bpm-buttons">
+            <button class="bpm-btn" id="decreaseBtn">-10</button>
+            <button class="bpm-btn" id="increaseBtn">+10</button>
+        </div>
+
+        <div class="time-signature">
+            <div class="time-signature-label">박자</div>
+            <div class="time-signature-buttons">
+                <button class="time-btn" data-beats="2">2/4</button>
+                <button class="time-btn" data-beats="3">3/4</button>
+                <button class="time-btn active" data-beats="4">4/4</button>
+                <button class="time-btn" data-beats="6">6/8</button>
+            </div>
+        </div>
+
+        <div class="visual-beat" id="visualBeat">
+            <div class="beat-dot"></div>
+            <div class="beat-dot"></div>
+            <div class="beat-dot"></div>
+            <div class="beat-dot"></div>
+        </div>
+
+        <div class="controls">
+            <button class="play-btn" id="playBtn">▶ 시작</button>
+        </div>
+
+        <div class="presets">
+            <div class="presets-label">빠른 설정</div>
+            <div class="preset-buttons">
+                <button class="preset-btn" data-bpm="60">느리게 (60)</button>
+                <button class="preset-btn" data-bpm="90">보통 (90)</button>
+                <button class="preset-btn" data-bpm="120">중간 (120)</button>
+                <button class="preset-btn" data-bpm="140">빠름 (140)</button>
+                <button class="preset-btn" data-bpm="180">매우빠름 (180)</button>
+                <button class="preset-btn" data-bpm="200">초고속 (200)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isPlaying = false;
+        let currentBeat = 0;
+        let beatsPerMeasure = 4;
+        let bpm = 120;
+        let intervalId = null;
+        let audioContext = null;
+
+        const bpmSlider = document.getElementById('bpmSlider');
+        const bpmDisplay = document.getElementById('bpmDisplay');
+        const tempoName = document.getElementById('tempoName');
+        const playBtn = document.getElementById('playBtn');
+        const visualBeat = document.getElementById('visualBeat');
+        const decreaseBtn = document.getElementById('decreaseBtn');
+        const increaseBtn = document.getElementById('increaseBtn');
+
+        const tempoNames = [
+            { min: 0, max: 40, name: 'Grave (매우 느리게)' },
+            { min: 41, max: 60, name: 'Largo (느리게)' },
+            { min: 61, max: 76, name: 'Adagio (느긋하게)' },
+            { min: 77, max: 108, name: 'Andante (걷는 속도로)' },
+            { min: 109, max: 120, name: 'Moderato (보통 빠르기로)' },
+            { min: 121, max: 140, name: 'Allegro (빠르게)' },
+            { min: 141, max: 180, name: 'Vivace (생기있게)' },
+            { min: 181, max: 240, name: 'Presto (매우 빠르게)' }
+        ];
+
+        function getTempoName(bpm) {
+            for (let tempo of tempoNames) {
+                if (bpm >= tempo.min && bpm <= tempo.max) {
+                    return tempo.name;
+                }
+            }
+            return 'Moderato';
+        }
+
+        function updateBPM(newBPM) {
+            bpm = Math.max(40, Math.min(240, newBPM));
+            bpmSlider.value = bpm;
+            bpmDisplay.textContent = bpm;
+            tempoName.textContent = getTempoName(bpm);
+            
+            if (isPlaying) {
+                stop();
+                play();
+            }
+        }
+
+        function updateBeats(beats) {
+            beatsPerMeasure = beats;
+            visualBeat.innerHTML = '';
+            for (let i = 0; i < beats; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'beat-dot';
+                visualBeat.appendChild(dot);
+            }
+            currentBeat = 0;
+            
+            document.querySelectorAll('.time-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (parseInt(btn.dataset.beats) === beats) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        function playSound(isAccent) {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = isAccent ? 1200 : 800;
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+
+        function updateVisual() {
+            const dots = visualBeat.querySelectorAll('.beat-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.remove('active', 'accent');
+                if (index === currentBeat) {
+                    if (index === 0) {
+                        dot.classList.add('accent');
+                    } else {
+                        dot.classList.add('active');
+                    }
+                }
+            });
+        }
+
+        function tick() {
+            playSound(currentBeat === 0);
+            updateVisual();
+            currentBeat = (currentBeat + 1) % beatsPerMeasure;
+        }
+
+        function play() {
+            isPlaying = true;
+            playBtn.textContent = '⏸ 정지';
+            playBtn.classList.add('playing');
+            
+            const interval = 60000 / bpm;
+            tick();
+            intervalId = setInterval(tick, interval);
+        }
+
+        function stop() {
+            isPlaying = false;
+            playBtn.textContent = '▶ 시작';
+            playBtn.classList.remove('playing');
+            
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+            
+            currentBeat = 0;
+            const dots = visualBeat.querySelectorAll('.beat-dot');
+            dots.forEach(dot => {
+                dot.classList.remove('active', 'accent');
+            });
+        }
+
+        bpmSlider.addEventListener('input', (e) => {
+            updateBPM(parseInt(e.target.value));
+        });
+
+        decreaseBtn.addEventListener('click', () => {
+            updateBPM(bpm - 10);
+        });
+
+        increaseBtn.addEventListener('click', () => {
+            updateBPM(bpm + 10);
+        });
+
+        playBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                stop();
+            } else {
+                play();
+            }
+        });
+
+        document.querySelectorAll('.time-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                updateBeats(parseInt(btn.dataset.beats));
+            });
+        });
+
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                updateBPM(parseInt(btn.dataset.bpm));
+            });
+        });
+
+        updateBPM(120);
+    </script>
+</body>
+</html>

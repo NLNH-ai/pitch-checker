@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#667eea">
+    <title>버스킹이 멀지않았다</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+            background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 20px;
+            box-shadow: 
+                0 20px 60px rgba(0,0,0,0.3),
+                0 0 0 1px rgba(255,255,255,0.5) inset;
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .pitch-display {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .pitch-display::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .emoji-display {
+            font-size: 70px;
+            margin-bottom: 15px;
+            animation: bounce 0.5s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .note-display {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+            position: relative;
+            z-index: 1;
+        }
+
+        .frequency-display {
+            font-size: 20px;
+            color: #666;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .range-indicator {
+            display: inline-block;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 16px;
+            margin-top: 8px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .range-low {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+        }
+
+        .range-mid {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .range-high {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 35px;
+            border-radius: 30px;
+            font-size: 17px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 
+                0 4px 15px rgba(102, 126, 234, 0.4),
+                0 0 0 1px rgba(255,255,255,0.2) inset;
+            font-weight: 600;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 20px rgba(102, 126, 234, 0.6),
+                0 0 0 1px rgba(255,255,255,0.2) inset;
+        }
+
+        .start-btn:active {
+            transform: translateY(0);
+        }
+
+        .start-btn.active {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            box-shadow: 
+                0 4px 15px rgba(245, 101, 101, 0.4),
+                0 0 0 1px rgba(255,255,255,0.2) inset;
+        }
+
+        .piano-container {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            border-radius: 20px;
+            padding: 20px 15px;
+            box-shadow: 
+                inset 0 4px 10px rgba(0,0,0,0.3),
+                0 4px 15px rgba(0,0,0,0.2);
+            overflow: visible;
+        }
+
+        .piano-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+            overflow-y: visible;
+            padding: 10px 0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .piano-wrapper::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .piano-wrapper::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+            border-radius: 3px;
+        }
+
+        .piano-wrapper::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+        }
+
+        .piano-wrapper::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.5);
+        }
+
+        .octave-btn {
+            background: linear-gradient(135deg, #4a5568, #2d3748);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 
+                0 4px 8px rgba(0,0,0,0.3),
+                0 0 0 1px rgba(255,255,255,0.1) inset;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 10;
+        }
+
+        .octave-btn:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transform: scale(1.1);
+            box-shadow: 
+                0 6px 12px rgba(102, 126, 234, 0.4),
+                0 0 0 1px rgba(255,255,255,0.2) inset;
+        }
+
+        .octave-btn:active {
+            transform: scale(0.95);
+        }
+
+        .octave-btn:disabled {
+            background: linear-gradient(135deg, #2d3748, #1a202c);
+            cursor: not-allowed;
+            opacity: 0.4;
+            transform: scale(1);
+        }
+
+        .octave-display {
+            text-align: center;
+            color: #e2e8f0;
+            font-size: 15px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .piano {
+            display: flex;
+            justify-content: center;
+            position: relative;
+            height: 200px;
+            width: 470px;
+            margin: 0 auto;
+        }
+
+        .key {
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.1s;
+        }
+
+        .white-key {
+            width: 50px;
+            height: 200px;
+            background: linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%);
+            border: 2px solid #333;
+            border-radius: 0 0 5px 5px;
+            margin: 0;
+            box-shadow: 
+                0 4px 8px rgba(0,0,0,0.2),
+                inset 0 -2px 4px rgba(0,0,0,0.1);
+            position: absolute;
+        }
+
+        .white-key:hover {
+            background: linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%);
+        }
+
+        .white-key:active, .white-key.playing {
+            background: linear-gradient(180deg, #e0e0e0 0%, #d0d0d0 100%);
+            transform: translateY(2px);
+            box-shadow: 
+                0 2px 4px rgba(0,0,0,0.2),
+                inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .black-key {
+            width: 30px;
+            height: 120px;
+            background: linear-gradient(180deg, #2d3748 0%, #1a202c 100%);
+            border: 2px solid #000;
+            border-radius: 0 0 3px 3px;
+            position: absolute;
+            z-index: 2;
+            box-shadow: 
+                0 4px 8px rgba(0,0,0,0.5),
+                inset 0 -2px 4px rgba(255,255,255,0.1);
+        }
+
+        .black-key:hover {
+            background: linear-gradient(180deg, #4a5568 0%, #2d3748 100%);
+        }
+
+        .black-key:active, .black-key.playing {
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            transform: translateY(2px);
+            box-shadow: 
+                0 2px 4px rgba(0,0,0,0.5),
+                inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .key-label {
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+            font-weight: bold;
+        }
+
+        .black-key .key-label {
+            color: #cbd5e0;
+            bottom: 5px;
+            font-size: 10px;
+        }
+
+        .status {
+            text-align: center;
+            margin-top: 15px;
+            color: #cbd5e0;
+            font-size: 13px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* 모바일 최적화 */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+                border-radius: 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .header p {
+                font-size: 13px;
+            }
+            
+            .pitch-display {
+                padding: 25px 15px;
+            }
+            
+            .emoji-display {
+                font-size: 60px;
+            }
+            
+            .note-display {
+                font-size: 36px;
+            }
+            
+            .frequency-display {
+                font-size: 18px;
+            }
+            
+            .range-indicator {
+                font-size: 14px;
+                padding: 6px 15px;
+            }
+            
+            .start-btn {
+                padding: 12px 30px;
+                font-size: 16px;
+            }
+            
+            .piano-container {
+                padding: 15px 10px;
+            }
+            
+            .octave-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
+            }
+            
+            .octave-display {
+                font-size: 14px;
+            }
+            
+            .status {
+                font-size: 12px;
+            }
+            
+            .piano {
+                width: 470px;
+                min-width: 470px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .piano {
+                width: 420px;
+                min-width: 420px;
+            }
+            
+            .white-key {
+                width: 45px;
+            }
+            
+            .black-key {
+                width: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 버스킹이 멀지않았다</h1>
+            <p>마이크로 노래하고 피아노로 연습하세요!</p>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 20px;">
+            <a href="metronome.html" style="
+                display: inline-block;
+                color: #667eea;
+                text-decoration: none;
+                font-size: 14px;
+                padding: 8px 20px;
+                border-radius: 20px;
+                background: rgba(102, 126, 234, 0.1);
+                transition: all 0.3s;
+                margin: 0 5px;
+            ">🎵 메트로놈</a>
+            <a href="rhythm-game.html" style="
+                display: inline-block;
+                color: #667eea;
+                text-decoration: none;
+                font-size: 14px;
+                padding: 8px 20px;
+                border-radius: 20px;
+                background: rgba(102, 126, 234, 0.1);
+                transition: all 0.3s;
+                margin: 0 5px;
+            ">🎮 리듬 게임</a>
+        </div>
+        
+        <div class="pitch-display">
+            <div class="emoji-display" id="emoji">🎤</div>
+            <div class="note-display" id="note">-</div>
+            <div class="frequency-display" id="frequency">마이크를 시작하세요</div>
+            <div class="range-indicator" id="range" style="display: none;">중간 음역대</div>
+        </div>
+        
+        <div class="controls">
+            <button class="start-btn" id="startBtn">🎙️ 마이크 시작</button>
+        </div>
+        
+        <div class="piano-container">
+            <div class="piano-wrapper">
+                <button class="octave-btn octave-prev" id="prevOctave">◀</button>
+                <div class="piano" id="piano"></div>
+                <button class="octave-btn octave-next" id="nextOctave">▶</button>
+            </div>
+            <div class="octave-display" id="octaveDisplay">옥타브: 4-5</div>
+            <div class="status" id="status">피아노 건반을 클릭하면 소리가 계속 나옵니다 (다시 클릭하면 중지)</div>
+        </div>
+    </div>
+
+    <script>
+        // 음정 감지 변수
+        let audioContext;
+        let analyser;
+        let microphone;
+        let dataArray;
+        let isListening = false;
+
+        // 오디오 컨텍스트 (피아노용)
+        let pianoContext;
+        let activeOscillators = {};
+
+        // 현재 옥타브
+        let currentOctave = 4;
+
+        // 음계 설정
+        const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+        // 전체 음계 주파수 (C2부터 C7까지)
+        const allNoteFrequencies = {
+            'C2': 65.41, 'C#2': 69.30, 'D2': 73.42, 'D#2': 77.78, 'E2': 82.41,
+            'F2': 87.31, 'F#2': 92.50, 'G2': 98.00, 'G#2': 103.83, 'A2': 110.00, 'A#2': 116.54, 'B2': 123.47,
+            'C3': 130.81, 'C#3': 138.59, 'D3': 146.83, 'D#3': 155.56, 'E3': 164.81,
+            'F3': 174.61, 'F#3': 185.00, 'G3': 196.00, 'G#3': 207.65, 'A3': 220.00, 'A#3': 233.08, 'B3': 246.94,
+            'C4': 261.63, 'C#4': 277.18, 'D4': 293.66, 'D#4': 311.13, 'E4': 329.63,
+            'F4': 349.23, 'F#4': 369.99, 'G4': 392.00, 'G#4': 415.30, 'A4': 440.00, 'A#4': 466.16, 'B4': 493.88,
+            'C5': 523.25, 'C#5': 554.37, 'D5': 587.33, 'D#5': 622.25, 'E5': 659.25,
+            'F5': 698.46, 'F#5': 739.99, 'G5': 783.99, 'G#5': 830.61, 'A5': 880.00, 'A#5': 932.33, 'B5': 987.77,
+            'C6': 1046.50, 'C#6': 1108.73, 'D6': 1174.66, 'D#6': 1244.51, 'E6': 1318.51,
+            'F6': 1396.91, 'F#6': 1479.98, 'G6': 1567.98, 'G#6': 1661.22, 'A6': 1760.00, 'A#6': 1864.66, 'B6': 1975.53,
+            'C7': 2093.00, 'C#7': 2217.46, 'D7': 2349.32
+        };
+
+        // 이모티콘 매핑
+        const emojiMap = {
+            low: '😊',
+            mid: '🎵',
+            high: '🎶'
+        };
+
+        // 피아노 건반 생성
+        function createPiano() {
+            const piano = document.getElementById('piano');
+            piano.innerHTML = '';
+            
+            const whiteKeys = [
+                {note: `C${currentOctave}`, label: 'C'},
+                {note: `D${currentOctave}`, label: 'D'},
+                {note: `E${currentOctave}`, label: 'E'},
+                {note: `F${currentOctave}`, label: 'F'},
+                {note: `G${currentOctave}`, label: 'G'},
+                {note: `A${currentOctave}`, label: 'A'},
+                {note: `B${currentOctave}`, label: 'B'},
+                {note: `C${currentOctave + 1}`, label: 'C'},
+                {note: `D${currentOctave + 1}`, label: 'D'}
+            ];
+            
+            whiteKeys.forEach((key, index) => {
+                const keyElement = document.createElement('div');
+                keyElement.className = 'key white-key';
+                keyElement.dataset.note = key.note;
+                keyElement.style.left = `${index * 52}px`;
+                keyElement.style.position = 'absolute';
+                
+                const label = document.createElement('div');
+                label.className = 'key-label';
+                label.textContent = key.label;
+                keyElement.appendChild(label);
+                
+                keyElement.addEventListener('click', () => toggleNote(key.note, keyElement));
+                keyElement.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    toggleNote(key.note, keyElement);
+                });
+                
+                piano.appendChild(keyElement);
+            });
+            
+            const blackKeys = [
+                {note: `C#${currentOctave}`, label: 'C#', position: 0},
+                {note: `D#${currentOctave}`, label: 'D#', position: 1},
+                {note: `F#${currentOctave}`, label: 'F#', position: 3},
+                {note: `G#${currentOctave}`, label: 'G#', position: 4},
+                {note: `A#${currentOctave}`, label: 'A#', position: 5},
+                {note: `C#${currentOctave + 1}`, label: 'C#', position: 7}
+            ];
+            
+            blackKeys.forEach(key => {
+                const keyElement = document.createElement('div');
+                keyElement.className = 'key black-key';
+                keyElement.dataset.note = key.note;
+                keyElement.style.left = `${key.position * 52 + 37}px`;
+                keyElement.style.position = 'absolute';
+                
+                const label = document.createElement('div');
+                label.className = 'key-label';
+                label.textContent = key.label;
+                keyElement.appendChild(label);
+                
+                keyElement.addEventListener('click', () => toggleNote(key.note, keyElement));
+                keyElement.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    toggleNote(key.note, keyElement);
+                });
+                
+                piano.appendChild(keyElement);
+            });
+            
+            document.getElementById('octaveDisplay').textContent = `옥타브: ${currentOctave}-${currentOctave + 1}`;
+            document.getElementById('prevOctave').disabled = currentOctave <= 2;
+            document.getElementById('nextOctave').disabled = currentOctave >= 6;
+        }
+
+        // Global AudioContext unlock for mobile
+        function unlockAudio() {
+            if (!pianoContext) {
+                pianoContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (pianoContext.state === 'suspended') {
+                pianoContext.resume();
+            }
+            document.removeEventListener('touchstart', unlockAudio);
+            document.removeEventListener('click', unlockAudio);
+        }
+
+        document.addEventListener('touchstart', unlockAudio, { passive: true });
+        document.addEventListener('click', unlockAudio, { passive: true });
+
+        // 피아노 소리 재생/중지
+        function toggleNote(note, keyElement) {
+            if (!pianoContext) {
+                pianoContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            if (pianoContext.state === 'suspended') {
+                pianoContext.resume();
+            }
+            
+            if (activeOscillators[note]) {
+                try {
+                    const osc = activeOscillators[note];
+                    osc.gain.gain.cancelScheduledValues(pianoContext.currentTime);
+                    osc.gain.gain.setValueAtTime(osc.gain.gain.value, pianoContext.currentTime);
+                    osc.gain.gain.exponentialRampToValueAtTime(0.001, pianoContext.currentTime + 0.1);
+                    osc.oscillator.stop(pianoContext.currentTime + 0.1);
+                } catch(e) {
+                    console.log('Stop error:', e);
+                }
+                delete activeOscillators[note];
+                keyElement.classList.remove('playing');
+            } else {
+                const oscillator = pianoContext.createOscillator();
+                const gainNode = pianoContext.createGain();
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(allNoteFrequencies[note], pianoContext.currentTime);
+                
+                // Increase volume for mobile (0.3 -> 0.6)
+                gainNode.gain.setValueAtTime(0, pianoContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.6, pianoContext.currentTime + 0.02);
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(pianoContext.destination);
+                
+                oscillator.start();
+                
+                activeOscillators[note] = {
+                    oscillator: oscillator,
+                    gain: gainNode
+                };
+                
+                keyElement.classList.add('playing');
+            }
+        }
+
+        function frequencyToNote(frequency) {
+            const noteNum = 12 * (Math.log(frequency / 440) / Math.log(2));
+            const roundedNote = Math.round(noteNum) + 69;
+            const noteName = notes[roundedNote % 12];
+            const octave = Math.floor(roundedNote / 12) - 1;
+            return { name: noteName, octave: octave, fullName: `${noteName}${octave}` };
+        }
+
+        function getRange(frequency) {
+            if (frequency < 300) return 'low';
+            if (frequency < 500) return 'mid';
+            return 'high';
+        }
+
+        function detectPitch() {
+            if (!isListening) return;
+            
+            analyser.getByteTimeDomainData(dataArray);
+            const ac = autoCorrelate(dataArray, audioContext.sampleRate);
+            
+            if (ac !== -1) {
+                const frequency = Math.round(ac * 10) / 10;
+                const noteInfo = frequencyToNote(frequency);
+                const range = getRange(frequency);
+                
+                document.getElementById('note').textContent = noteInfo.fullName;
+                document.getElementById('frequency').textContent = `${frequency} Hz`;
+                
+                const rangeElement = document.getElementById('range');
+                rangeElement.style.display = 'inline-block';
+                rangeElement.className = 'range-indicator range-' + range;
+                
+                if (range === 'low') {
+                    rangeElement.textContent = '낮은 음역대';
+                } else if (range === 'mid') {
+                    rangeElement.textContent = '중간 음역대';
+                } else {
+                    rangeElement.textContent = '높은 음역대';
+                }
+                
+                document.getElementById('emoji').textContent = emojiMap[range];
+            }
+            
+            requestAnimationFrame(detectPitch);
+        }
+
+        function autoCorrelate(buffer, sampleRate) {
+            const SIZE = buffer.length;
+            const MAX_SAMPLES = Math.floor(SIZE / 2);
+            let best_offset = -1;
+            let best_correlation = 0;
+            let rms = 0;
+            
+            for (let i = 0; i < SIZE; i++) {
+                const val = (buffer[i] - 128) / 128;
+                rms += val * val;
+            }
+            rms = Math.sqrt(rms / SIZE);
+            
+            if (rms < 0.01) return -1;
+            
+            let lastCorrelation = 1;
+            for (let offset = 1; offset < MAX_SAMPLES; offset++) {
+                let correlation = 0;
+                
+                for (let i = 0; i < MAX_SAMPLES; i++) {
+                    correlation += Math.abs(((buffer[i] - 128) / 128) - ((buffer[i + offset] - 128) / 128));
+                }
+                
+                correlation = 1 - (correlation / MAX_SAMPLES);
+                
+                if (correlation > 0.9 && correlation > lastCorrelation) {
+                    const foundGoodCorrelation = (correlation > best_correlation);
+                    if (foundGoodCorrelation) {
+                        best_correlation = correlation;
+                        best_offset = offset;
+                    }
+                }
+                
+                lastCorrelation = correlation;
+            }
+            
+            if (best_correlation > 0.01) {
+                return sampleRate / best_offset;
+            }
+            
+            return -1;
+        }
+
+        document.getElementById('startBtn').addEventListener('click', async function() {
+            if (!isListening) {
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioContext.createAnalyser();
+                    analyser.fftSize = 2048;
+                    
+                    const bufferLength = analyser.fftSize;
+                    dataArray = new Uint8Array(bufferLength);
+                    
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    microphone = audioContext.createMediaStreamSource(stream);
+                    microphone.connect(analyser);
+                    
+                    isListening = true;
+                    this.textContent = '🛑 마이크 중지';
+                    this.classList.add('active');
+                    
+                    detectPitch();
+                } catch (error) {
+                    alert('마이크 접근 권한이 필요합니다!');
+                    console.error(error);
+                }
+            } else {
+                isListening = false;
+                if (microphone) {
+                    microphone.disconnect();
+                    microphone.mediaStream.getTracks().forEach(track => track.stop());
+                }
+                if (audioContext) {
+                    audioContext.close();
+                }
+                
+                this.textContent = '🎙️ 마이크 시작';
+                this.classList.remove('active');
+                
+                document.getElementById('note').textContent = '-';
+                document.getElementById('frequency').textContent = '마이크를 시작하세요';
+                document.getElementById('range').style.display = 'none';
+                document.getElementById('emoji').textContent = '🎤';
+            }
+        });
+
+        createPiano();
+
+        document.getElementById('prevOctave').addEventListener('click', function() {
+            if (currentOctave > 2) {
+                Object.keys(activeOscillators).forEach(note => {
+                    try {
+                        activeOscillators[note].oscillator.stop();
+                    } catch(e) {}
+                    delete activeOscillators[note];
+                });
+                
+                currentOctave--;
+                createPiano();
+            }
+        });
+
+        document.getElementById('prevOctave').addEventListener('touchend', function(e) {
+            e.preventDefault();
+            if (currentOctave > 2) {
+                Object.keys(activeOscillators).forEach(note => {
+                    try {
+                        activeOscillators[note].oscillator.stop();
+                    } catch(e) {}
+                    delete activeOscillators[note];
+                });
+                
+                currentOctave--;
+                createPiano();
+            }
+        });
+
+        document.getElementById('nextOctave').addEventListener('click', function() {
+            if (currentOctave < 6) {
+                Object.keys(activeOscillators).forEach(note => {
+                    try {
+                        activeOscillators[note].oscillator.stop();
+                    } catch(e) {}
+                    delete activeOscillators[note];
+                });
+                
+                currentOctave++;
+                createPiano();
+            }
+        });
+
+        document.getElementById('nextOctave').addEventListener('touchend', function(e) {
+            e.preventDefault();
+            if (currentOctave < 6) {
+                Object.keys(activeOscillators).forEach(note => {
+                    try {
+                        activeOscillators[note].oscillator.stop();
+                    } catch(e) {}
+                    delete activeOscillators[note];
+                });
+                
+                currentOctave++;
+                createPiano();
+            }
+        });
+    </script>
+</body>
+</html>
